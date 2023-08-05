@@ -13,7 +13,6 @@ import preprocessing as pp
 from multiprocessing import Process
 
 def train_model():
-    print('yes')
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(pp.resnet.parameters(), lr=0.001)
 
@@ -34,7 +33,7 @@ def train_model():
 
             # Zero the parameter gradients
             optimizer.zero_grad()
-            print(1)
+
             # Forward pass
             outputs = pp.resnet(images)
             loss = criterion(outputs, labels)
