@@ -14,18 +14,6 @@ resnet = InceptionResnetV1(pretrained='vggface2', classify=True).eval()
 num_features = resnet.logits.in_features
 resnet.logits = nn.Linear(num_features, 7)
 
-children = list(resnet.children())
-
-index_last_bn = None
-for i, layer in reversed(list(enumerate(children))):
-    if isinstance(layer, nn.BatchNorm1d):
-        index_last_bn = i
-        break
-
-children[index_last_bn] = nn.BatchNorm1d(7)
-
-resnet = nn.Sequential(*children)
-
 transform = transforms.ToTensor()
 
 dataset_path = 'train' 
