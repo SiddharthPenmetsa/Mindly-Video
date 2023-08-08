@@ -59,4 +59,4 @@ class FaceDataset(Dataset):
         return img_tensor, label
 
 train_dataset = FaceDataset(dataset_path, transform=transform)
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=10)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=10)
