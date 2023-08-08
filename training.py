@@ -14,23 +14,24 @@ from multiprocessing import Process
 
 def train_model():
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(pp.resnet.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(pp.resnet.parameters(), lr=0.0001)
 
-    # Move the model to GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     pp.resnet.to(device)
 
-    # Number of epochs
-    num_epochs = 10
+    num_epochs = 5
 
     # Training loop
     for epoch in range(num_epochs):
         pp.resnet.train()  # Set the model to training mode
-        running_loss = 0.0
-        print(0)
+        correct_preds = 0  # Track number of correct predictions
+        total_preds = 0  # Track total number of predictions
+
+        print("New Epoch")
+
         for images, labels in pp.train_loader:
             images, labels = images.to(device), labels.to(device)
-
+            
             # Zero the parameter gradients
             optimizer.zero_grad()
 
@@ -44,9 +45,15 @@ def train_model():
 
             running_loss += loss.item() * images.size(0)
 
+            _, predicted = torch.max(outputs.data, 1)
+            total_preds += labels.size(0)
+            correct_preds += (predicted == labels).sum().item()
+
         # Print epoch loss
         epoch_loss = running_loss / len(pp.train_dataset)
-        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}')
+        epoch_accuracy = correct_preds / total_preds
+        
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.4f}')
     
 def worker():
     train_model()
