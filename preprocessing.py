@@ -10,10 +10,6 @@ from torchvision import transforms
 import torch
 import torch.optim as optim
 
-resnet = InceptionResnetV1(pretrained='vggface2', classify=True).eval()
-num_features = resnet.logits.in_features
-resnet.logits = nn.Linear(num_features, 7)
-
 transform = transforms.ToTensor()
 
 dataset_path0 = 'train' 
