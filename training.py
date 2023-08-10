@@ -12,48 +12,85 @@ import torch.optim as optim
 import preprocessing as pp
 from multiprocessing import Process
 
+resnet = InceptionResnetV1(pretrained='vggface2', classify=True).eval()
+num_features = resnet.logits.in_features
+resnet.logits = nn.Linear(num_features, 7)
+
 def train_model():
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(pp.resnet.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(resnet.parameters(), lr=0.0001)
 
+    # Move the model to GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    pp.resnet.to(device)
+    resnet.to(device)
 
-    num_epochs = 5
-
-    # Training loop
+    # Number of epochs
+    num_epochs = 6
+   # Training loop
     for epoch in range(num_epochs):
-        pp.resnet.train()  # Set the model to training mode
-        correct_preds = 0  # Track number of correct predictions
-        total_preds = 0  # Track total number of predictions
+        resnet.train()  # Set the model to training mode
+        train_running_loss = 0.0
+        train_correct_preds = 0  # Track number of correct predictions
+        train_total_preds = 0  # Track total number of predictions
 
         print("New Epoch")
-
+        x = 0
         for images, labels in pp.train_loader:
             images, labels = images.to(device), labels.to(device)
-            
+            print(x)
+            x=x+1
             # Zero the parameter gradients
             optimizer.zero_grad()
 
             # Forward pass
-            outputs = pp.resnet(images)
+            outputs = resnet(images)
             loss = criterion(outputs, labels)
-
+            
+            print(loss)
             # Backward pass and optimization
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item() * images.size(0)
+            train_running_loss += loss.item() * images.size(0)
 
             _, predicted = torch.max(outputs.data, 1)
-            total_preds += labels.size(0)
-            correct_preds += (predicted == labels).sum().item()
-
-        # Print epoch loss
-        epoch_loss = running_loss / len(pp.train_dataset)
-        epoch_accuracy = correct_preds / total_preds
+            train_total_preds += labels.size(0)
+            train_correct_preds += (predicted == labels).sum().item()
+            print((predicted == labels).sum().item())
         
-        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.4f}')
+        # Print epoch loss
+        train_epoch_loss = train_running_loss / len(pp.train_dataset)
+        train_epoch_accuracy = train_correct_preds / train_total_preds
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {train_epoch_loss:.4f}, Accuracy: {train_epoch_accuracy:.4f}')
+
+        test_running_loss = 0.0
+        test_correct_preds = 0  # Track number of correct predictions
+        test_total_preds = 0  # Track total number of predictions
+
+        print("New Epoch")
+        x = 0
+        for images, labels in pp.test_loader:
+            images, labels = images.to(device), labels.to(device)
+            print(x)
+            x=x+1
+
+            # Forward pass
+            outputs = resnet(images)
+            loss = criterion(outputs, labels)
+            
+            print(loss)
+
+            test_running_loss += loss.item() * images.size(0)
+
+            _, predicted = torch.max(outputs.data, 1)
+            test_total_preds += labels.size(0)
+            test_correct_preds += (predicted == labels).sum().item()
+            print((predicted == labels).sum().item())
+
+        test_epoch_loss = test_running_loss / len(pp.test_dataset)
+        test_epoch_accuracy = test_correct_preds / test_total_preds
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {test_epoch_loss:.4f}, Accuracy: {test_epoch_accuracy:.4f}')
+
     
 def worker():
     train_model()
@@ -61,3 +98,5 @@ if __name__=='__main__':
     p = Process(target=worker)
     p.start()
     p.join()
+
+torch.save(resnet, 'trained_model.pt')
