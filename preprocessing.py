@@ -16,7 +16,8 @@ resnet.logits = nn.Linear(num_features, 7)
 
 transform = transforms.ToTensor()
 
-dataset_path = 'train' 
+dataset_path0 = 'train' 
+dataset_path1 = 'test'
 
 class FaceDataset(Dataset):
     def __init__(self, dataset_path, transform=None):
@@ -58,5 +59,8 @@ class FaceDataset(Dataset):
         img_tensor = tensor1.numpy()
         return img_tensor, label
 
-train_dataset = FaceDataset(dataset_path, transform=transform)
+train_dataset = FaceDataset(dataset_path0, transform=transform)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=10)
+
+test_dataset = FaceDataset(dataset_path1, transform=transform)
+test_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=10)
