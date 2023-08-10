@@ -62,35 +62,6 @@ def train_model():
         train_epoch_loss = train_running_loss / len(pp.train_dataset)
         train_epoch_accuracy = train_correct_preds / train_total_preds
         print(f'Epoch {epoch+1}/{num_epochs}, Loss: {train_epoch_loss:.4f}, Accuracy: {train_epoch_accuracy:.4f}')
-
-        test_running_loss = 0.0
-        test_correct_preds = 0  # Track number of correct predictions
-        test_total_preds = 0  # Track total number of predictions
-
-        print("New Epoch")
-        x = 0
-        for images, labels in pp.test_loader:
-            images, labels = images.to(device), labels.to(device)
-            print(x)
-            x=x+1
-
-            # Forward pass
-            outputs = resnet(images)
-            loss = criterion(outputs, labels)
-            
-            print(loss)
-
-            test_running_loss += loss.item() * images.size(0)
-
-            _, predicted = torch.max(outputs.data, 1)
-            test_total_preds += labels.size(0)
-            test_correct_preds += (predicted == labels).sum().item()
-            print((predicted == labels).sum().item())
-
-        test_epoch_loss = test_running_loss / len(pp.test_dataset)
-        test_epoch_accuracy = test_correct_preds / test_total_preds
-        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {test_epoch_loss:.4f}, Accuracy: {test_epoch_accuracy:.4f}')
-
     
 def worker():
     train_model()
